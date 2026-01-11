@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	// Init database
 	InitDB()
 
 	http.HandleFunc("/send-sms", SendSMSHandler)

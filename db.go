@@ -12,12 +12,9 @@ var db *sql.DB
 
 func InitDB() {
 	var err error
-
 	dsn := "host=postgres-gammu user=smsuser password=smspassword dbname=smsdb sslmode=disable"
 
 	for i := 1; i <= 20; i++ {
-		log.Println("Connecting to DB attempt", i)
-
 		db, err = sql.Open("pgx", dsn)
 		if err == nil {
 			err = db.Ping()
@@ -28,9 +25,9 @@ func InitDB() {
 			return
 		}
 
-		log.Println("DB not ready:", err)
+		log.Println("Waiting DB...", err)
 		time.Sleep(3 * time.Second)
 	}
 
-	log.Fatal("FATAL: cannot connect to database")
+	log.Fatal("Cannot connect to PostgreSQL")
 }
