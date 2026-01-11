@@ -18,7 +18,7 @@ func normalizeNumber(n string) string {
 	n = re.ReplaceAllString(n, "")
 
 	if n[0:1] == "0" {
-		n = "62" + n[1:]
+		n = "+62" + n[1:]
 	}
 	return n
 }
