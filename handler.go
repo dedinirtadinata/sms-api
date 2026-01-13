@@ -56,8 +56,8 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	// Try simpler format first - this matches the commented pattern that should work
 	_, err := db.Exec(`
 		INSERT INTO outbox
-		("DestinationNumber", "TextDecoded", "CreatorID", "SendingDateTime", "Coding", "Class", "RelativeValidity", "Status")
-		VALUES ($1, $2, 'SYSTEM', NOW(), 'Default_No_Compression', -1, 255, 'SendingOKNoReport')
+		("DestinationNumber", "TextDecoded", "CreatorID", "SendingDateTime", "Coding", "Class", "RelativeValidity")
+		VALUES ($1, $2, 'SYSTEM', NOW(), 'Default_No_Compression', -1, 255,)
 	`, number, req.Message)
 
 	if err != nil {
