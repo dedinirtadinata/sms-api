@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -58,7 +59,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number := normalizeNumber(req.To)
-	msg := sanitizeSMS(req.Message)
+	msg := fmt.Sprintf("%s", req.Message) //sanitizeSMS(req.Message)
 
 	// Validate message is not empty
 	if req.Message == "" {
