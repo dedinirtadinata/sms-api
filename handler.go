@@ -55,7 +55,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err := db.Exec(`
 		INSERT INTO outbox
-		("DestinationNumber","TextDecoded","CreatorID","Priority","DeliveryReport")
+		("DestinationNumber","TextDecoded","CreatorID")
 		VALUES ($1,$2,'SYSTEM')
 	`,
 		number,
