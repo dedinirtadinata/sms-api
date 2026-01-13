@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type SMSRequest struct {
@@ -32,6 +33,20 @@ func normalizeNumber(n string) string {
 	return "+" + n
 }
 
+func sanitizeSMS(text string) string {
+	// Ganti newline jadi spasi
+	text = regexp.MustCompile(`[\r\n\t]+`).ReplaceAllString(text, " ")
+
+	// Hapus karakter non GSM basic
+	re := regexp.MustCompile(`[^\x20-\x7E]`)
+	text = re.ReplaceAllString(text, "")
+
+	// Trim spasi
+	text = strings.TrimSpace(text)
+
+	return text
+}
+
 func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	if db == nil {
 		http.Error(w, "DB not ready", 500)
@@ -45,7 +60,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number := normalizeNumber(req.To)
-
+	msg := sanitizeSMS(req.Message)
 	// Field "Text" is NULL, only "TextDecoded" is filled (UTF-8 text)
 	// This matches the manual insert pattern that works with Gammu
 	// _, err := db.Exec(`
@@ -57,7 +72,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	// 	req.Message,
 	// )
 
-	_, err := db.Exec(`INSERT INTO "public"."outbox" ("SendBefore", "SendAfter", "Text", "DestinationNumber", "Coding", "UDH", "Class", "TextDecoded",  "MultiPart", "RelativeValidity", "SenderID", "SendingTimeOut", "DeliveryReport", "CreatorID", "Retries", "Priority", "Status", "StatusCode") VALUES ('23:59:59', '00:00:00', NULL,$1, 'Default_No_Compression', NULL, -1, $2, 'f', -1, NULL, NOW(), 'default', 'SYSTEM', 0, 0, 'Reserved', -1);`, number, req.Message)
+	_, err := db.Exec(`INSERT INTO "public"."outbox" ("SendBefore", "SendAfter", "Text", "DestinationNumber", "Coding", "UDH", "Class", "TextDecoded",  "MultiPart", "RelativeValidity", "SenderID", "SendingTimeOut", "DeliveryReport", "CreatorID", "Retries", "Priority", "Status", "StatusCode") VALUES ('23:59:59', '00:00:00', NULL,$1, 'Default_No_Compression', NULL, -1, $2, 'f', -1, NULL, NOW(), 'default', 'SYSTEM', 0, 0, 'Reserved', -1);`, number, msg)
 
 	if err != nil {
 		http.Error(w, "Failed to queue SMS", 500)
