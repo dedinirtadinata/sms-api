@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"regexp"
 	"strings"
@@ -72,7 +73,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	// 	req.Message,
 	// )
 
-	_, err := db.Exec(`INSERT INTO "public"."outbox" ("SendBefore", "SendAfter", "Text", "DestinationNumber", "Coding", "UDH", "Class", "TextDecoded",  "MultiPart", "RelativeValidity", "SenderID", "SendingTimeOut", "DeliveryReport", "CreatorID", "Retries", "Priority", "Status", "StatusCode") VALUES ('23:59:59', '00:00:00', NULL,$1, 'Default_No_Compression', NULL, -1,$2, 'f', -1, NULL, NOW(), 'default', 'SYSTEM', 0, 0, 'Reserved', -1);`, number, msg)
+	_, err := db.Exec(`INSERT INTO "public"."outbox" ("SendBefore", "SendAfter", "Text", "DestinationNumber", "Coding", "UDH", "Class", "TextDecoded",  "MultiPart", "RelativeValidity", "SenderID", "SendingTimeOut", "DeliveryReport", "CreatorID", "Retries", "Priority", "Status", "StatusCode") VALUES ('23:59:59', '00:00:00', NULL,$1, 'Default_No_Compression', NULL, -1,'`+fmt.Sprintf("%s", msg)+`', 'f', -1, NULL, NOW(), 'default', 'SYSTEM', 0, 0, 'Reserved', -1);`, number)
 
 	if err != nil {
 		http.Error(w, "Failed to queue SMS", 500)
