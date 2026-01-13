@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 type SMSRequest struct {
@@ -32,6 +33,20 @@ func normalizeNumber(n string) string {
 	return "+" + n
 }
 
+func sanitizeSMS(text string) string {
+	// Ganti newline jadi spasi
+	text = regexp.MustCompile(`[\r\n\t]+`).ReplaceAllString(text, " ")
+
+	// Hapus karakter non GSM basic
+	re := regexp.MustCompile(`[^\x20-\x7E]`)
+	text = re.ReplaceAllString(text, "")
+
+	// Trim spasi
+	text = strings.TrimSpace(text)
+
+	return text
+}
+
 func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	if db == nil {
 		http.Error(w, "DB not ready", 500)
@@ -45,6 +60,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number := normalizeNumber(req.To)
+	msg := sanitizeSMS("Haloooo")
 
 	// Validate message is not empty
 	if req.Message == "" {
@@ -57,8 +73,8 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	_, err := db.Exec(`
 		INSERT INTO outbox
 		("DestinationNumber", "TextDecoded", "CreatorID", "SendingDateTime", "Coding", "Class", "RelativeValidity")
-		VALUES ($1, $2, 'SYSTEM', NOW(), 'Default_No_Compression', -1, 255,)
-	`, number, req.Message)
+		VALUES ($1, $2, 'SYSTEM', NOW(), 'Default_No_Compression', -1, 255)
+	`, number, msg)
 
 	if err != nil {
 		http.Error(w, "Failed to queue SMS: "+err.Error(), 500)
