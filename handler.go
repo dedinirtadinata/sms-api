@@ -60,7 +60,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number := normalizeNumber(req.To)
-	msg := sanitizeSMS("Haloooo")
+	msg := sanitizeSMS(req.Message)
 
 	// Validate message is not empty
 	if req.Message == "" {
