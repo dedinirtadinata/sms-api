@@ -34,17 +34,15 @@ func normalizeNumber(n string) string {
 }
 
 func sanitizeSMS(text string) string {
-	// Ganti newline jadi spasi
-	text = regexp.MustCompile(`[\r\n\t]+`).ReplaceAllString(text, " ")
-
-	// Hapus karakter non GSM basic
-	re := regexp.MustCompile(`[^\x20-\x7E]`)
-	text = re.ReplaceAllString(text, "")
-
-	// Trim spasi
-	text = strings.TrimSpace(text)
-
-	return text
+	var buf []rune
+	for _, r := range text {
+		// buang control character
+		if r < 32 || r == 127 {
+			continue
+		}
+		buf = append(buf, r)
+	}
+	return strings.TrimSpace(string(buf))
 }
 
 func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +63,11 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	// Validate message is not empty
 	if req.Message == "" {
 		http.Error(w, "Message cannot be empty", 400)
+		return
+	}
+
+	if len(msg) == 0 {
+		http.Error(w, "Invalid SMS content", 400)
 		return
 	}
 
