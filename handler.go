@@ -72,6 +72,7 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 
 	number := normalizeNumber(req.To)
 	raw := req.Message
+	log.Printf("DEBUG: [%s]", raw)
 	msg := normalizeSMS(raw)
 
 	log.Println("RAW:", raw)
