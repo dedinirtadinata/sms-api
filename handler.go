@@ -51,24 +51,15 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.Priority == 0 {
-		req.Priority = 0
-	}
-	if req.DLR == "" {
-		req.DLR = "default"
-	}
-
 	number := normalizeNumber(req.To)
 
 	_, err := db.Exec(`
 		INSERT INTO outbox
 		("DestinationNumber","TextDecoded","CreatorID","Priority","DeliveryReport")
-		VALUES ($1,$2,'SYSTEM',$3,$4)
+		VALUES ($1,$2,'SYSTEM')
 	`,
 		number,
 		req.Message,
-		req.Priority,
-		req.DLR,
 	)
 
 	if err != nil {
