@@ -14,12 +14,28 @@ type SMSRequest struct {
 }
 
 func normalizeNumber(n string) string {
+	// Simpan tanda + jika ada
+	hasPlus := len(n) > 0 && n[0] == '+'
+
+	// Hapus semua karakter non-numerik
 	re := regexp.MustCompile(`[^0-9]`)
 	n = re.ReplaceAllString(n, "")
 
-	if n[0:1] == "0" {
-		n = "+62" + n[1:]
+	if len(n) == 0 {
+		return n
 	}
+
+	if n[0:1] == "0" {
+		// Nomor lokal Indonesia (dimulai dengan 0), ubah ke format internasional
+		n = "+62" + n[1:]
+	} else if n[0:2] == "62" {
+		// Nomor sudah dalam format internasional (dimulai dengan 62), tambahkan +
+		n = "+" + n
+	} else if hasPlus {
+		// Jika awalnya ada +, tambahkan kembali
+		n = "+" + n
+	}
+
 	return n
 }
 
