@@ -53,10 +53,12 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 
 	number := normalizeNumber(req.To)
 
+	// Field "Text" is NULL, only "TextDecoded" is filled (UTF-8 text)
+	// This matches the manual insert pattern that works with Gammu
 	_, err := db.Exec(`
 		INSERT INTO outbox
-		("DestinationNumber","TextDecoded","CreatorID")
-		VALUES ('$1','$2','SYSTEM')
+		("DestinationNumber", "TextDecoded", "CreatorID")
+		VALUES ($1, $2, 'SYSTEM')
 	`,
 		number,
 		req.Message,
