@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"regexp"
 	"strings"
@@ -46,6 +46,18 @@ func sanitizeSMS(text string) string {
 	return strings.TrimSpace(string(buf))
 }
 
+func normalizeSMS(text string) string {
+	buf := make([]byte, 0, len(text))
+	for i := 0; i < len(text); i++ {
+		b := text[i]
+		// hanya izinkan printable ASCII + spasi
+		if b >= 32 && b <= 126 {
+			buf = append(buf, b)
+		}
+	}
+	return strings.TrimSpace(string(buf))
+}
+
 func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	if db == nil {
 		http.Error(w, "DB not ready", 500)
@@ -59,7 +71,18 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	number := normalizeNumber(req.To)
-	msg := fmt.Sprintf("%s", req.Message) //sanitizeSMS(req.Message)
+	raw := req.Message
+	msg := normalizeSMS(raw)
+
+	log.Println("RAW:", raw)
+	log.Println("RAW BYTES:", []byte(raw))
+	log.Println("NORMALIZED:", msg)
+	log.Println("NORMALIZED BYTES:", []byte(msg))
+
+	if len(msg) == 0 {
+		http.Error(w, "Invalid SMS content", 400)
+		return
+	}
 
 	// Validate message is not empty
 	if req.Message == "" {
