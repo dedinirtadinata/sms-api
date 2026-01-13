@@ -14,10 +14,6 @@ type SMSRequest struct {
 }
 
 func normalizeNumber(n string) string {
-	// Simpan tanda + jika ada
-	hasPlus := len(n) > 0 && n[0] == '+'
-
-	// Hapus semua karakter non-numerik
 	re := regexp.MustCompile(`[^0-9]`)
 	n = re.ReplaceAllString(n, "")
 
@@ -25,18 +21,15 @@ func normalizeNumber(n string) string {
 		return n
 	}
 
-	if n[0:1] == "0" {
-		// Nomor lokal Indonesia (dimulai dengan 0), ubah ke format internasional
-		n = "+62" + n[1:]
-	} else if n[0:2] == "62" {
-		// Nomor sudah dalam format internasional (dimulai dengan 62), tambahkan +
-		n = "+" + n
-	} else if hasPlus {
-		// Jika awalnya ada +, tambahkan kembali
-		n = "+" + n
+	if n[0] == '0' {
+		return "+62" + n[1:]
 	}
 
-	return n
+	if len(n) >= 2 && n[0:2] == "62" {
+		return "+" + n
+	}
+
+	return "+" + n
 }
 
 func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
@@ -56,9 +49,9 @@ func SendSMSHandler(w http.ResponseWriter, r *http.Request) {
 	// Field "Text" is NULL, only "TextDecoded" is filled (UTF-8 text)
 	// This matches the manual insert pattern that works with Gammu
 	_, err := db.Exec(`
-		INSERT INTO outbox
-		("DestinationNumber", "TextDecoded", "CreatorID")
-		VALUES ($1, $2, 'SYSTEM')
+	INSERT INTO outbox
+	("DestinationNumber", "TextDecoded", "CreatorID", "SendingDateTime", "Coding", "Class", "RelativeValidity")
+	VALUES ($1, $2, 'SYSTEM', NOW(), 'Default_No_Compression', -1, 255)
 	`,
 		number,
 		req.Message,
